@@ -1,0 +1,8 @@
+__pycache__/
+*.pyc
+config.json
+*.exe
+*.pdf
+*.docx
+*.bat
+.streamlit/secrets.toml
