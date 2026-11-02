@@ -53,6 +53,12 @@ def is_online(host="8.8.8.8", port=53, timeout=1.2):
         s.close()
         return True
     except Exception:
+        pass
+    try:
+        import urllib.request
+        urllib.request.urlopen("https://www.google.com", timeout=2)
+        return True
+    except Exception:
         return False
 
 # Page configuration
@@ -117,7 +123,7 @@ try:
         secrets_key = st.secrets["GEMINI_API_KEY"]
 except Exception:
     pass
-gemini_key = config.get("gemini_api_key", "") or os.environ.get("GEMINI_API_KEY", "") or secrets_key
+gemini_key = st.session_state.get("gemini_key", "") or config.get("gemini_api_key", "") or os.environ.get("GEMINI_API_KEY", "") or secrets_key
 
 # Header
 st.markdown(f"""
@@ -148,6 +154,15 @@ with st.sidebar:
             st.success("API Key सुरक्षित सेव हो गई!")
             st.rerun()
     st.caption("नोट: मुख्य विंडो में दिया गया 5-चरणीय कार्यप्रवाह उपयोग करें।")
+
+if not gemini_key:
+    st.warning("⚠️ **Google Gemini AI Key दर्ज नहीं है!**\n\nमोबाइल से AI टाइपिंग शुरू करने के लिए कृपया अपनी Gemini API Key यहाँ डालें:")
+    quick_api_key = st.text_input("Gemini API Key:", type="password", key="quick_key_box", placeholder="AIzaSy...")
+    if quick_api_key:
+        save_config({"gemini_api_key": quick_api_key})
+        st.session_state["gemini_key"] = quick_api_key
+        st.success("✅ API Key सक्रिय हो गई!")
+        st.rerun()
 
 # Session state initialization with versioning to prevent stale data
 if "doc_version" not in st.session_state:
@@ -307,6 +322,10 @@ with main_col1:
         if not image_list:
             st.warning("⚠️ कृपया पहले स्टेप 1 में कोई फोटो या PDF अपलोड करें!")
         else:
+            if not gemini_key and (online_status or sys.platform != "win32"):
+                st.error("⚠️ AI टाइपिंग के लिए कृपया ऊपर अपनी Google Gemini API Key दर्ज करें!")
+                st.stop()
+
             is_drafting = "अर्जी" in work_type or "ड्राफ्ट" in work_type
             use_ai = bool(gemini_key and online_status)
 
