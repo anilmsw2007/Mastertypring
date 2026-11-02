@@ -724,7 +724,7 @@ def open_document_in_word(file_path: str):
     """
     Directly opens the generated document in Microsoft Word on Windows.
     """
-    if os.path.exists(file_path):
+    if hasattr(os, "startfile") and os.path.exists(file_path):
         os.startfile(os.path.abspath(file_path))
         return True
     return False
